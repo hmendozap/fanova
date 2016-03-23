@@ -332,13 +332,14 @@ class Fanova(object):
             "--improvements-over", self._improvement_over,
             "--quantile-to-compare", str(self._quantile_to_compare)
             ]
-        #TODO: check that fanova was started successfully and wasn't killed
+        # TODO: check that fanova was started successfully and wasn't killed
         with open(os.devnull, "w") as fnull:
             logging.debug(" ".join(cmds))
             if logging.getLogger().level <= logging.DEBUG:
                 self._process = Popen(cmds, stdout=sys.stdout, stderr=sys.stdout)
             else:   
-                self._process = Popen(cmds, stdout=fnull, stderr=sys.stdout)#stdout=fnull, stderr=fnull)
+                # self._process = Popen(cmds, stdout=fnull, stderr=sys.stdout)
+                self._process = Popen(cmds)
 
     def _start_connection(self):
         logging.debug("starting connection...")
