@@ -74,14 +74,16 @@ class Fanova(object):
         self._start_fanova()
         logging.debug("Now connecting to fanova...")
         if self._start_connection():
-            if len(glob.glob(os.path.join(smac_output,"*.pcs"))) == 1:
-                pcs_file = glob.glob(os.path.join(smac_output,"*.pcs"))[0]
-            elif len(glob.glob(os.path.join(smac_output,"params.txt"))) == 1:
-                pcs_file = glob.glob(os.path.join(smac_output,"params.txt"))[0]
-            elif len(glob.glob(os.path.join(smac_output,"param-file.txt"))) == 1:
-                pcs_file = glob.glob(os.path.join(smac_output,"param-file.txt"))[0]
+            if len(glob.glob(os.path.join(smac_output, "*.pcs"))) == 1:
+                pcs_file = glob.glob(os.path.join(smac_output, "*.pcs"))[0]
+            elif len(glob.glob(os.path.join(smac_output, "params.txt"))) == 1:
+                pcs_file = glob.glob(os.path.join(smac_output, "params.txt"))[0]
+            elif len(glob.glob(os.path.join(smac_output, "param-file.txt"))) == 1:
+                pcs_file = glob.glob(os.path.join(smac_output, "param-file.txt"))[0]
             else:
-                print "Error: Couldn't find a parameter configuration space file. Make sure that in the SMAC output directory is a valid file with name *.pcs, params.txt or param-file.txt"
+                print("Error: Couldn't find a parameter configuration space file."
+                      "Make sure that in the SMAC output directory is a valid file"
+                      "with name *.pcs, params.txt or param-file.txt")
                 return
             self._config_space = ConfigSpace(pcs_file)
 
