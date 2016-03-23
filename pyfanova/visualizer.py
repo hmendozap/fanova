@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm, ticker
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -136,7 +136,112 @@ class Visualizer(object):
         fig.colorbar(surface, shrink=0.5, aspect=5)
         return plt
 
-    def plot_marginal(self, param, lower_bound=0, upper_bound=1, is_int=False, resolution=100, log_scale=False):
+    # TODO: Add kwargs to control plot presentation
+    def plot_contour_pairwise(self, param_1, param_2,
+                              bounds_1=(0, 1),
+                              bounds_2=(0, 1),
+                              log_scale_1=False, log_scale_2=False,
+                              resolution=20):
+        """
+        Plot the contour of interaction of two continuous or integers marginals
+        Due to inability to detect log conditioning, must be passed explicitly
+        :param param_1: String. Name of the first marginal. Must be integer or continuous type parameter.
+        :param param_2: String. Name of the second marginal. Must be integer or continuous type parameter.
+        :param bounds_1:
+        :param bounds_2:
+        :param log_scale_1:
+        :param log_scale_2:
+        :param resolution:
+        :return ax: matplotlib Axes. Returns Axes object for further tweaking.
+        """
+        dim1, param_name_1 = self._check_param(param_1)
+        dim2, param_name_2 = self._check_param(param_2)
+
+        grid_1 = np.linspace(bounds_1[0], bounds_1[1], resolution)
+        grid_2 = np.linspace(bounds_2[0], bounds_1[1], resolution)
+
+        Z = np.zeros([resolution * resolution])
+        for i, y_value in enumerate(grid_2):
+            for j, x_value in enumerate(grid_1):
+                Z[i * resolution + j] = self._fanova._get_marginal_for_value_pair(dim1, dim2, x_value, y_value)[0]
+
+        Z = np.reshape(Z, [resolution, resolution])
+
+        display_grid_1 = [self._fanova.unormalize_value(param_name_1, value) for value in grid_1]
+        display_grid_2 = [self._fanova.unormalize_value(param_name_2, value) for value in grid_2]
+
+        X, Y = np.meshgrid(display_grid_1, display_grid_2)
+
+        fig = plt.figure()
+        ax = plt.subplot(111)
+        # ax = Axes3D(fig)
+
+        contour_surface = ax.contourf(X, Y, Z, cmap='jet_r')
+        plt.contour(contour_surface, color='k')
+        if log_scale_1:
+            ax.set_xscale('log')
+        if log_scale_2:
+            ax.set_yscale('log')
+        ax.set_xlabel(param_name_1)
+        ax.set_ylabel(param_name_2)
+        cbar = fig.colorbar(contour_surface)
+        cbar.ax.set_ylabel('Performance')
+        return ax
+
+    def plot_3dcontour(self, param_1, param_2,
+                       bounds_1=(0, 1), bounds_2=(0, 1),
+                       log_scale_1=False, log_scale_2=False,
+                       resolution=20):
+        """
+        Plot the contour of interaction of two continuous or integers marginals
+        Due to inability to detect log conditioning, must be passed explicitly
+        :param param_1: String. Name of the first marginal. Must be integer or continuous type parameter.
+        :param param_2: String. Name of the second marginal. Must be integer or continuous type parameter.
+        :param bounds_1:
+        :param bounds_2:
+        :param log_scale_1:
+        :param log_scale_2:
+        :param resolution:
+        :return ax: matplotlib Axes. Returns Axes object for further tweaking.
+        """
+        dim1, param_name_1 = self._check_param(param_1)
+        dim2, param_name_2 = self._check_param(param_2)
+
+        grid_1 = np.linspace(bounds_1[0], bounds_1[1], resolution)
+        grid_2 = np.linspace(bounds_2[0], bounds_1[1], resolution)
+
+        Z = np.zeros([resolution * resolution])
+        for i, y_value in enumerate(grid_2):
+            for j, x_value in enumerate(grid_1):
+                Z[i * resolution + j] = self._fanova._get_marginal_for_value_pair(dim1, dim2, x_value, y_value)[0]
+
+        Z = np.reshape(Z, [resolution, resolution])
+
+        display_grid_1 = [self._fanova.unormalize_value(param_name_1, value) for value in grid_1]
+        display_grid_2 = [self._fanova.unormalize_value(param_name_2, value) for value in grid_2]
+
+        X, Y = np.meshgrid(display_grid_1, display_grid_2)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        #surf = ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.6, cmap='jet_r')
+        contour_surface = ax.contourf(X, Y, Z, cmap='jet_r')
+        #contour_surface_1 = ax.contourf(X, Y, Z, zdir='z', offset=0, cmap='jet_r')
+        #contour_surface_2 = ax.contourf(X, Y, Z, zdir='x', offset=0.0, cmap='Blues')
+        #contour_surface_3 = ax.contourf(X, Y, Z, zdir='y', offset=0.01, cmap='Blues')
+
+        if log_scale_1:
+            ax.set_xscale('log')
+        if log_scale_2:
+            ax.set_yscale('log')
+        ax.set_xlabel(param_name_1)
+        ax.set_ylabel(param_name_2)
+        return ax
+
+    # TODO: Add kwargs to control plot presentation
+    def plot_marginal(self, param, lower_bound=0, upper_bound=1,
+                      is_int=False, resolution=100, log_scale=False,
+                      ax=None):
         if isinstance(param, int):
             dim = param
             param_name = self._fanova.get_parameter_names()[dim]
@@ -147,8 +252,9 @@ class Visualizer(object):
             dim = self._fanova.param_name2dmin[param]
             param_name = param
 
-        if param_name not in self._fanova.get_config_space().get_integer_parameters() and param_name not in self._fanova.get_config_space().get_continuous_parameters():
-            print("Parameter %s is not a continuous or integer parameter!" % (param_name)) 
+        if param_name not in self._fanova.get_config_space().get_integer_parameters() and \
+           param_name not in self._fanova.get_config_space().get_continuous_parameters():
+            print("Parameter %s is not a continuous or integer parameter!" % (param_name))
             return 
         grid = np.linspace(lower_bound, upper_bound, resolution)
         display_grid = [self._fanova.unormalize_value(param_name, value) for value in grid]
@@ -165,17 +271,20 @@ class Visualizer(object):
         lower_curve = mean - std
         upper_curve = mean + std
 
+        if ax is None:
+            ax = plt.gca()
+
         if log_scale or (np.diff(display_grid).std() > 0.000001 and param_name in self._fanova.get_config_space().get_continuous_parameters()):
             #HACK for detecting whether it's a log parameter, because the config space doesn't expose this information
-            plt.semilogx(display_grid, mean, 'b')
+            ax.semilogx(display_grid, mean, 'b')
             #print "printing %s semilogx" % param_name
         else:
-            plt.plot(display_grid, mean, 'b')
-        plt.fill_between(display_grid, upper_curve, lower_curve, facecolor='red', alpha=0.6)
-        plt.xlabel(param_name)
+            ax.plot(display_grid, mean, 'b')
+        ax.fill_between(display_grid, upper_curve, lower_curve, facecolor='red', alpha=0.3)
+        ax.set_xlabel(param_name)
 
-        plt.ylabel("Performance")
-        return plt
+        ax.set_ylabel("Performance")
+        return ax
     
 #     def create_pdf_file(self):
 #         latex_doc = self._latex_template
