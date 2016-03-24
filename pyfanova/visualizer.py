@@ -141,7 +141,7 @@ class Visualizer(object):
                               bounds_1=(0, 1),
                               bounds_2=(0, 1),
                               log_scale_1=False, log_scale_2=False,
-                              resolution=20):
+                              resolution=20, ax=None):
         """
         Plot the contour of interaction of two continuous or integers marginals
         Due to inability to detect log conditioning, must be passed explicitly
@@ -152,6 +152,7 @@ class Visualizer(object):
         :param log_scale_1:
         :param log_scale_2:
         :param resolution:
+        :param ax: Optional. If provided plot on this axis
         :return ax: matplotlib Axes. Returns Axes object for further tweaking.
         """
         dim1, param_name_1 = self._check_param(param_1)
@@ -172,19 +173,18 @@ class Visualizer(object):
 
         X, Y = np.meshgrid(display_grid_1, display_grid_2)
 
-        fig = plt.figure()
-        ax = plt.subplot(111)
-        # ax = Axes3D(fig)
+        if ax is None:
+            ax = plt.gca()
 
         contour_surface = ax.contourf(X, Y, Z, cmap='jet_r')
-        plt.contour(contour_surface, color='k')
+        ax.contour(contour_surface, color='k')
         if log_scale_1:
             ax.set_xscale('log')
         if log_scale_2:
             ax.set_yscale('log')
         ax.set_xlabel(param_name_1)
         ax.set_ylabel(param_name_2)
-        cbar = fig.colorbar(contour_surface)
+        cbar = ax.figure.colorbar(contour_surface, ax=ax)
         cbar.ax.set_ylabel('Performance')
         return ax
 
