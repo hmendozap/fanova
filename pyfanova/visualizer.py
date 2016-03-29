@@ -193,7 +193,7 @@ class Visualizer(object):
                        log_scale_1=False, log_scale_2=False,
                        resolution=20):
         """
-        Plot the contour of interaction of two continuous or integers marginals
+        Plot the contour in 3d projection of interaction of two continuous or integers marginals
         Due to inability to detect log conditioning, must be passed explicitly
         :param param_1: String. Name of the first marginal. Must be integer or continuous type parameter.
         :param param_2: String. Name of the second marginal. Must be integer or continuous type parameter.
@@ -252,9 +252,10 @@ class Visualizer(object):
             dim = self._fanova.param_name2dmin[param]
             param_name = param
 
+        # TODO: Validate that if not categorical then plot the categorical parameter!!!
         if param_name not in self._fanova.get_config_space().get_integer_parameters() and \
            param_name not in self._fanova.get_config_space().get_continuous_parameters():
-            print("Parameter %s is not a continuous or integer parameter!" % (param_name))
+            print("Parameter %s is not a continuous or integer parameter!" % param_name)
             return 
         grid = np.linspace(lower_bound, upper_bound, resolution)
         display_grid = [self._fanova.unormalize_value(param_name, value) for value in grid]
