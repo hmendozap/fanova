@@ -49,7 +49,13 @@ class Visualizer(object):
             self.plot_pairwise_marginal(param1, param2)
             plt.savefig(outfile_name)
 
-    def plot_categorical_marginal(self, param):
+    def plot_categorical_marginal(self, param, ax=None):
+        """
+        Plot a marginal from a categorical hyperparameter
+        :param param: str. Name of the parameter to be plotted. Must be categorical
+        :param ax: Optional. If provided plot on this axis
+        :return ax: matplotlib Axes. Returns Axes object for further tweaking.
+        """
         if isinstance(param, int):
             dim = param
             param_name = self._fanova.get_parameter_names()[dim]
@@ -65,34 +71,25 @@ class Visualizer(object):
         labels = self._fanova.get_config_space().get_categorical_values(param)
         
         if param_name not in self._fanova.get_config_space().get_categorical_parameters():
-            print("Parameter %s is not a categorical parameter!" % (param_name))
+            print("Parameter %s is not a categorical parameter!" % param_name)
 
-        indices = np.asarray(list(range(categorical_size)))
-        width = 0.5
+        if ax is None:
+            ax = plt.gca()
+
+        indices = np.array(range(categorical_size))+1
         marginals = [self._fanova.get_categorical_marginal_for_value(param_name, i) for i in range(categorical_size)]
         mean, std = list(zip(*marginals))
-        #plt.bar(indices, mean, width, color='red', yerr=std)
-        #plot mean
-        b = plt.boxplot([[x] for x in mean], 0, '', labels=labels)
-        min_y = mean[0]
-        max_y = mean[0]
-        # blow up boxes 
-        for box, std_ in zip(b["boxes"], std):
-            y = box.get_ydata()
-            y[2:4] = y[2:4] + std_
-            y[0:2] = y[0:2] - std_
-            y[4] = y[4] - std_
-            box.set_ydata(y)
-            min_y = min(min_y, y[0] - std_)
-            max_y = max(max_y, y[2] + std_)
-        
-        plt.ylim([min_y, max_y])
-        
-        #plt.xticks(indices, labels)
-        plt.ylabel("Performance")
-        plt.xlabel(param_name)
+        ax.errorbar(indices, mean, yerr=std, marker='o',
+                    elinewidth=1.75, capsize=7.0, color='b',
+                    ms=10.0, mec='white', mew=2.25, ls='dotted', lw=2.25)
+        ax.set_xlim(indices[0]-1, indices[-1]+1)
+        ax.set_xticks(indices)
+        ax.set_xticklabels(labels)
 
-        return plt
+        ax.set_ylabel("Performance")
+        ax.set_xlabel(param_name)
+
+        return ax
 
     def _check_param(self, param):
         if isinstance(param, int):
