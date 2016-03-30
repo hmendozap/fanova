@@ -16,7 +16,7 @@ class Visualizer(object):
         """
         assert os.path.exists(directory), "directory %s doesn't exist" % directory
 
-        #categorical parameters
+        # Categorical parameters
         for param_name in self._fanova.get_config_space().get_categorical_parameters():
             plt.clf()
             outfile_name = os.path.join(directory, param_name.replace(os.sep, "_") + ".png")
@@ -24,7 +24,7 @@ class Visualizer(object):
             self.plot_categorical_marginal(param_name)
             plt.savefig(outfile_name)
 
-        #continuous and integer parameters
+        # Continuous and integer parameters
         params_to_plot = []
         params_to_plot.extend(self._fanova.get_config_space().get_continuous_parameters())
         params_to_plot.extend(self._fanova.get_config_space().get_integer_parameters())
@@ -49,6 +49,7 @@ class Visualizer(object):
             self.plot_pairwise_marginal(param1, param2)
             plt.savefig(outfile_name)
 
+    # TODO: Add kwargs to control plot presentatio
     def plot_categorical_marginal(self, param, ax=None):
         """
         Plot a marginal from a categorical hyperparameter
@@ -66,12 +67,12 @@ class Visualizer(object):
             dim = self._fanova.param_name2dmin[param]
             param_name = param
 
+        if param_name not in self._fanova.get_config_space().get_categorical_parameters():
+            raise ValueError("Parameter %s is not a categorical parameter!" % param_name)
+
         categorical_size = self._fanova.get_config_space().get_categorical_size(param_name)
 
         labels = self._fanova.get_config_space().get_categorical_values(param)
-        
-        if param_name not in self._fanova.get_config_space().get_categorical_parameters():
-            print("Parameter %s is not a categorical parameter!" % param_name)
 
         if ax is None:
             ax = plt.gca()
@@ -100,7 +101,7 @@ class Visualizer(object):
             dim = self._fanova.param_name2dmin[param]
             param_name = param
 
-        return (dim, param_name)
+        return dim, param_name
 
     def plot_pairwise_marginal(self, param_1, param_2, lower_bound_1=0, upper_bound_1=1, lower_bound_2=0, upper_bound_2=1, resolution=20):
 
