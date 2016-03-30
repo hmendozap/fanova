@@ -203,8 +203,8 @@ class Fanova(object):
         """
         
         size = self._config_space.get_categorical_size(param)
-        if(value >= size):
-            print("Categorical value %d is out of bounds [%d, %d] for parameter %s" %(value, 0, size, param))
+        if value >= size:
+            print("Categorical value %d is out of bounds [%d, %d] for parameter %s" % (value, 0, size, param))
             return
         else:
             return self._get_marginal_for_value(param, value)
@@ -215,7 +215,7 @@ class Fanova(object):
 
         self._remote.send_command(["get_marginal_for_value", str(dim), str(value)])
         result = self._remote.receive().split(';')
-        return (float(result[0]), float(result[1]))
+        return float(result[0]), float(result[1])
 
     def _get_marginal_for_value_pair(self, param1, param2, value1, value2):
         dim1 = self._convert_param2dim(param1)
@@ -223,7 +223,7 @@ class Fanova(object):
 
         self._remote.send_command(["get_marginal_for_value_pair", str(dim1), str(dim2), str(value1), str(value2)])
         result = self._remote.receive().split(';')
-        return (float(result[0]), float(result[1]))
+        return float(result[0]), float(result[1])
 
     def _convert_param2dim(self, param):
         dim = -1
