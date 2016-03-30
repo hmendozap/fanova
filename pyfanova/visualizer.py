@@ -79,11 +79,11 @@ class Visualizer(object):
 
         indices = np.array(range(categorical_size))+1
         marginals = [self._fanova.get_categorical_marginal_for_value(param_name, i) for i in range(categorical_size)]
-        mean, std = list(zip(*marginals))
-        ax.errorbar(indices, mean, yerr=std, marker='o',
+        mean, std = list(zip(*marginals))  # Collect all means and std values
+        ax.errorbar(indices, mean, yerr=std, marker='s',
                     elinewidth=1.75, capsize=7.0, color='b',
                     ms=10.0, mec='white', mew=2.25, ls='dotted', lw=2.25)
-        ax.set_xlim(indices[0]-1, indices[-1]+1)
+        ax.set_xlim(indices[0]-0.3, indices[-1]+0.3)
         ax.set_xticks(indices)
         ax.set_xticklabels(labels)
 
@@ -279,7 +279,7 @@ class Visualizer(object):
             #print "printing %s semilogx" % param_name
         else:
             ax.plot(display_grid, mean, 'b')
-        ax.fill_between(display_grid, upper_curve, lower_curve, facecolor='red', alpha=0.3)
+        ax.fill_between(display_grid, upper_curve, lower_curve, facecolor='b', alpha=0.3)
         ax.set_xlabel(param_name)
 
         ax.set_ylabel("Performance")
