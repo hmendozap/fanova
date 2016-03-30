@@ -134,6 +134,74 @@ class Visualizer(object):
         fig.colorbar(surface, shrink=0.5, aspect=5)
         return plt
 
+    def plot_categorical_pairwise(self, param_categorical, param_continuous, bound=(0, 1),
+                                  log_scale=False, resolution=100,
+                                  ax=None):
+        """
+        Plot the interaction of one categorical and one continuous or integer marginals
+        :param param_categorical: String. Name of the first marginal. Must be categorical type parameter.
+        :param param_continuous: String. Name of the second marginal. Must be integer or continuous type parameter.
+        :param bound: Tuple. Limits or bounds of plotting of the continuous parameter.
+        :param log_scale: Boolean. Wheter the axis of the continuous parameter is in log scale
+        :param resolution: Scalar. Number of steps to predict the value of the continuos marginal
+        :param ax: Optional. If provided plot on this axis
+        :return ax: matplotlib Axes. Returns Axes object for further tweaking.
+        """
+        from itertools import chain, cycle
+        import matplotlib.font_manager as fontmanager
+
+        dim_inx1, param_name_1 = self._check_param(param_categorical)
+        dim_inx2, param_name_2 = self._check_param(param_continuous)
+
+        list_integers = self._fanova.get_config_space().get_integer_parameters()
+        list_continuous = self._fanova.get_config_space().get_continuous_parameters()
+        list_categorical = self._fanova.get_config_space().get_categorical_parameters()
+
+        if param_name_1 in chain(list_integers, list_continuous):
+            raise ValueError("Parameter %s cannot be continuous or integer parameter!", param_categorical)
+        if param_name_2 in list_categorical:
+            raise ValueError("Parameter %s cannot be categorical parameter!", param_continuous)
+
+        # Prepare the canvas to plot
+        if ax is None:
+            ax = plt.gca()
+
+        # Start with the preparations for continuous plotting
+        grid = np.linspace(bound[0], bound[1], resolution)
+        display_grid = [self._fanova.unormalize_value(param_name_2, value) for value in grid]
+
+        # Get the different values for categorical parameters
+        categorical_size = self._fanova.get_config_space().get_categorical_size(param_name_1)
+        labels = self._fanova.get_config_space().get_categorical_values(param_name_1)
+
+        # TODO: Add a seborn palette or better yet import seaborn
+        codes = 'bgrmyck'
+        color_codes = cycle(codes)
+
+        if log_scale or (np.diff(display_grid).std() > 0.000001):
+            canva = ax.semilogx
+        else:
+            canva = ax.plot
+
+        for l in range(categorical_size):
+            mean = np.zeros(resolution)
+            std = np.zeros(resolution)
+            for i in range(0, resolution):
+                (m, s) = self._fanova._get_marginal_for_value_pair(param1=param_name_1, param2=param_name_2,
+                                                                   value1=l, value2=grid[i])
+                mean[i] = m
+                std[i] = s
+            mean = np.asarray(mean)
+            std = np.asarray(std)
+            colr = next(color_codes)
+            canva(display_grid, mean, color=colr, label=labels[l])
+            ax.fill_between(display_grid, mean+std, mean-std, facecolor=colr, alpha=0.3)
+            lgs = ax.legend(loc='best', ncol=2, title=param_name_1, fontsize=10)
+            lgs.get_title().set_size(10)
+            ax.set_xlabel(param_name_2)
+            ax.set_ylabel("Performance")
+        return ax
+
     # TODO: Add kwargs to control plot presentation
     def plot_contour_pairwise(self, param_1, param_2,
                               bounds_1=(0, 1),
