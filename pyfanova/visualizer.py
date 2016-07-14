@@ -49,7 +49,7 @@ class Visualizer(object):
             self.plot_pairwise_marginal(param1, param2)
             plt.savefig(outfile_name)
 
-    # TODO: Add kwargs to control plot presentatio
+    # TODO: Add kwargs to control plot presentation
     def plot_categorical_marginal(self, param, ax=None):
         """
         Plot a marginal from a categorical hyperparameter
@@ -82,12 +82,12 @@ class Visualizer(object):
         mean, std = list(zip(*marginals))  # Collect all means and std values
         ax.errorbar(indices, mean, yerr=std, marker='s',
                     elinewidth=1.75, capsize=7.0, color='b',
-                    ms=10.0, mec='white', mew=2.25, ls='dotted', lw=2.25)
+                    ms=10.0, mec='black', mew=1.05, ls='dotted', lw=2.25)
         ax.set_xlim(indices[0]-0.3, indices[-1]+0.3)
         ax.set_xticks(indices)
-        ax.set_xticklabels(labels)
+        ax.set_xticklabels(labels, rotation='vertical')
 
-        ax.set_ylabel("Performance")
+        ax.set_ylabel("Loss")
         ax.set_xlabel(param_name)
 
         return ax
@@ -130,7 +130,7 @@ class Visualizer(object):
         surface = ax.plot_surface(display_xx, display_yy, zz, rstride=1, cstride=1, cmap=cm.jet, linewidth=0, antialiased=False)
         ax.set_xlabel(param_name_1)
         ax.set_ylabel(param_name_2)
-        ax.set_zlabel("Performance")
+        ax.set_zlabel("Loss")
         fig.colorbar(surface, shrink=0.5, aspect=5)
         return plt
 
@@ -196,10 +196,10 @@ class Visualizer(object):
             colr = next(color_codes)
             canva(display_grid, mean, color=colr, label=labels[l])
             ax.fill_between(display_grid, mean+std, mean-std, facecolor=colr, alpha=0.3)
-            lgs = ax.legend(loc='best', ncol=2, title=param_name_1, fontsize=10)
+            lgs = ax.legend(loc='best', ncol=4, title=param_name_1, fontsize=10)
             lgs.get_title().set_size(10)
             ax.set_xlabel(param_name_2)
-            ax.set_ylabel("Performance")
+            ax.set_ylabel("Loss")
         return ax
 
     # TODO: Add kwargs to control plot presentation
@@ -251,7 +251,7 @@ class Visualizer(object):
         ax.set_xlabel(param_name_1)
         ax.set_ylabel(param_name_2)
         cbar = ax.figure.colorbar(contour_surface, ax=ax)
-        cbar.ax.set_ylabel('Performance')
+        cbar.ax.set_ylabel('Loss')
         return ax
 
     def plot_3dcontour(self, param_1, param_2,
@@ -350,7 +350,7 @@ class Visualizer(object):
         ax.fill_between(display_grid, upper_curve, lower_curve, facecolor='b', alpha=0.3)
         ax.set_xlabel(param_name)
 
-        ax.set_ylabel("Performance")
+        ax.set_ylabel("Loss")
         return ax
     
 #     def create_pdf_file(self):
